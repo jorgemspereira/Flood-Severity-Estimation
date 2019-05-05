@@ -72,7 +72,6 @@ def make_request_dsm(latitude, longitude):
 
     file_name = "{}{}_AVE_DSM.tif".format(latitude, longitude)
     template = template.format(file_name)
-
     return requests.get(template)
 
 
@@ -309,13 +308,13 @@ def get_label_for_neighbor(info_interpolated, info_one, info_avg, neighbor_index
 def find_quadrant(point, dsm_content):
     dsm_info = get_geotiff_info(dsm_content)
 
-    if point[0] < (dsm_info[-1].shape[0] / 2) and point[1] > (dsm_info[-1].shape[1] / 2):
+    if point[0] <= (dsm_info[-1].shape[0] / 2) and point[1] >= (dsm_info[-1].shape[1] / 2):
         return Quadrant.first
-    if point[0] < (dsm_info[-1].shape[0] / 2) and point[1] < (dsm_info[-1].shape[1] / 2):
+    if point[0] <= (dsm_info[-1].shape[0] / 2) and point[1] <= (dsm_info[-1].shape[1] / 2):
         return Quadrant.second
-    if point[0] > (dsm_info[-1].shape[0] / 2) and point[1] < (dsm_info[-1].shape[1] / 2):
+    if point[0] >= (dsm_info[-1].shape[0] / 2) and point[1] <= (dsm_info[-1].shape[1] / 2):
         return Quadrant.third
-    if point[0] > (dsm_info[-1].shape[0] / 2) and point[1] > (dsm_info[-1].shape[1] / 2):
+    if point[0] >= (dsm_info[-1].shape[0] / 2) and point[1] >= (dsm_info[-1].shape[1] / 2):
         return Quadrant.fourth
 
 
@@ -489,9 +488,13 @@ def region_flooding_algorithm(row):
     day, month, year = row['day'], row['month'], row['year']
     longitude_converted, latitude_converted = row['longitude_converted'], row['latitude_converted']
 
-    dsm_content = read_request(make_request_dsm(latitude_converted, longitude_converted), "/vsimem/dsm")
-    dsm_content = merge_dsm(row, dsm_content, "/vsimem/dsm_merged")
-    dsm_content = fill_no_data(dsm_content, "/vsimem/dsm_final")
+    try:
+        dsm_content = read_request(make_request_dsm(latitude_converted, longitude_converted), "/vsimem/dsm")
+        dsm_content = merge_dsm(row, dsm_content, "/vsimem/dsm_merged")
+        dsm_content = fill_no_data(dsm_content, "/vsimem/dsm_final")
+    except RuntimeError as e:
+        print(e)
+        return 0.0
 
     slope_info = get_geotiff_info(calculate_slope(dsm_content, "/vsimem/slope"))
     gdal.Unlink("/vsimem/slope")
@@ -579,4 +582,5 @@ def main():
 
 
 if __name__ == '__main__':
+    gdal.UseExceptions()
     main()
