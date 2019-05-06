@@ -558,7 +558,7 @@ def verify_pixels(df, output_name):
 
     progress_bar = tqdm(total=df.shape[0])
     for index, row in df.iterrows():
-        if row['filename'] not in result_df['filename'].values:
+        if str(row['filename']) not in result_df['filename'].values.astype(str):
             result = {}
             water_level = region_flooding_algorithm(row)
             result['filename'] = row['filename']
@@ -571,14 +571,14 @@ def verify_pixels(df, output_name):
 def main():
     mediaeval_test_df = get_flooded_mediaeval_info("./datasets/mediaeval2017_testset_gt.csv",
                                                    "./datasets/mediaeval2017_testset_metadata.json")
-    verify_pixels(mediaeval_test_df, "result_mediaeval_2017_test.csv")
+    verify_pixels(mediaeval_test_df, "./results/result_mediaeval_2017_test.csv")
 
     mediaeval_train_df = get_flooded_mediaeval_info("./datasets/mediaeval2017_devset_gt.csv",
                                                     "./datasets/mediaeval2017_devset_metadata.json")
-    verify_pixels(mediaeval_train_df, "result_mediaeval_2017_train.csv")
+    verify_pixels(mediaeval_train_df, "./results/result_mediaeval_2017_train.csv")
 
     european_df = get_flooded_europeanfloods_info()
-    verify_pixels(european_df, "result_european_floods_2013.csv")
+    verify_pixels(european_df, "./results/result_european_floods_2013.csv")
 
 
 if __name__ == '__main__':
