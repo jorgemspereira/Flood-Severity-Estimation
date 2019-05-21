@@ -447,8 +447,6 @@ def merge_dsm(row, dsm_content, filename):
     for name in names:
         gdal.Unlink(name)
 
-    gdal.Unlink("/vsimem/vrt")
-
     return final_content
 
 
@@ -461,6 +459,7 @@ def get_flood_information(day, month, year, template, dsm_content):
         return None
 
     content_interpolated = get_geotiff_info(interpolate(content, dsm_content, "/vsimem/temp_inter"))
+    # gdal.Translate("{}_{}.tif".format(id_el, name), content)
     gdal.Unlink("/vsimem/temp_inter")
     gdal.Unlink("/vsimem/temp")
     return content_interpolated
@@ -481,6 +480,23 @@ def calculate_slope(dsm_content, filename):
     gdal.Unlink("/vsimem/mod")
     gdal.Unlink("/vsimem/tmp")
     return output
+
+
+def to_disk(inDs, outData, id):
+    rows = inDs.RasterYSize
+    cols = inDs.RasterXSize
+
+    driver = inDs.GetDriver()
+    outDs = driver.Create("{}_{}.tif".format(id, "mask"), cols, rows, 1, gdal.GDT_Int32)
+    outDs.SetGeoTransform(inDs.GetGeoTransform())
+    outDs.SetProjection(inDs.GetProjection())
+    output = np.zeros((rows, cols), np.int16)
+
+    for el in outData:
+        output[el[0], el[1]] = 1
+
+    outDs.GetRasterBand(1).WriteArray(output, 0, 0)
+    outDs.FlushCache()
 
 
 def region_flooding_algorithm(row):
@@ -530,9 +546,6 @@ def region_flooding_algorithm(row):
                 continue
 
             elevation_label = elevation_neighbors_info[neighbor_index]
-            if elevation_label == dsm_info[-2]:
-                continue
-
             water_label = get_label_for_neighbor(water_one_interpolated, water_one_neighbors_info,
                                                  water_avg_neighbors_info, neighbor_index)
             magnitude_label = get_label_for_neighbor(mag_one_interpolated, magnitude_one_neighbors_info,
@@ -542,11 +555,12 @@ def region_flooding_algorithm(row):
                 water_label = water_label / 1000000
                 magnitude_label = magnitude_label / 1000
 
-                if (water_label < 0.5 or magnitude_label > 2) and elevation_label < original_elevation:
+                if (water_label < 0.5 and magnitude_label > 2) or elevation_label < original_elevation:
                     to_process_lst.append(neighbor_position)
 
     avg_elevation = get_average_elevation(init_position, dsm_info, slope_info)
     maximum_elevation = get_maximum_elevation(already_visited, dsm_info, slope_info)
+    # to_disk(dsm_content, already_visited, id)
     return abs(maximum_elevation - avg_elevation)
 
 
