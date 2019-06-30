@@ -3,43 +3,40 @@ import pandas as pd
 
 
 def draw_plot(result):
-    eight_neighbors_ones_avg = result[result['class'] == 1].eight_neighbors_avg.tolist()
-    eight_neighbors_ones_min = result[result['class'] == 1].eight_neighbors_min.tolist()
+    final_result = []
+    first, second = [], []
+    for index, row in result.iterrows():
 
-    a_less_b = [eight_neighbors_ones_avg[index] - eight_neighbors_ones_min[index]
-                for index in range(0, len(eight_neighbors_ones_avg))]
+        if row['class'] == 1:
+            height = row['eight_neighbors_avg'] - row['eight_neighbors_min']
+            first.append(height)
+            height = min(1.0, height)
 
-    heights_ones = [min(1.0, eight_neighbors_ones_avg[index] - eight_neighbors_ones_min[index])
-                    for index in range(0, len(eight_neighbors_ones_avg))]
+        elif row['class'] == 2:
+            height = row['twenty_four_neighbors_max'] - row['twenty_four_neighbors_avg']
+            height = height if height > 1 else row['forty_eight_neighbors_max'] - row['forty_eight_neighbors_avg']
+            height = height if height > 1 else row['eighty_neighbors_max'] - row['eighty_neighbors_avg']
+            second.append(height)
+            height = max(1.0, height)
+
+        else:
+            raise ValueError("Class should be equal to 1 or 2.")
+
+        final_result.append((row['filename'], row['class'], height))
 
     print("Class LESS than 1 meter.")
-    print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in heights_ones) / len(heights_ones)))
-    print("Above 1 meter     : {:05.2f} %".format(100 * sum(x > 1.0 for x in a_less_b) / len(a_less_b)))
-
-    twenty_four_neighbors_twos_avg = result[result['class'] == 2].twenty_four_neighbors_avg.tolist()
-    twenty_four_neighbors_twos_max = result[result['class'] == 2].twenty_four_neighbors_max.tolist()
-
-    forty_eight_neighbors_twos_avg = result[result['class'] == 2].forty_eight_neighbors_avg.tolist()
-    forty_eight_neighbors_twos_max = result[result['class'] == 2].forty_eight_neighbors_max.tolist()
-
-    heights_twos, a_less_b = [], []
-    for index in range(0, len(twenty_four_neighbors_twos_avg)):
-        height = twenty_four_neighbors_twos_max[index] - twenty_four_neighbors_twos_avg[index]
-        if height < 1.0:
-            height = forty_eight_neighbors_twos_max[index] - forty_eight_neighbors_twos_avg[index]
-
-        a_less_b.append(height)
-        heights_twos.append(max(1.0, height))
+    print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in first) / len(first)))
+    print("Above 1 meter     : {:05.2f} %".format(100 * sum(x > 1.0 for x in first) / len(first)))
 
     print("Class MORE than 1 meter.")
-    print("Above 3 meters    : {:05.2f} %".format(100 * sum(x > 3.0 for x in heights_twos) / len(heights_twos)))
-    print("Above 5 meters    : {:05.2f} %".format(100 * sum(x > 5.0 for x in heights_twos) / len(heights_twos)))
-    print("Less than 1 meter : {:05.2f} %".format(100 * sum(x < 1.0 and x != 0 for x in a_less_b) / len(a_less_b)))
-    print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in a_less_b) / len(a_less_b)))
+    print("Above 3 meters    : {:05.2f} %".format(100 * sum(x > 3.0 for x in second) / len(second)))
+    print("Above 5 meters    : {:05.2f} %".format(100 * sum(x > 5.0 for x in second) / len(second)))
+    print("Less than 1 meter : {:05.2f} %".format(100 * sum(x < 1.0 and x != 0 for x in second) / len(second)))
+    print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in second) / len(second)))
 
     fig, ax = plt.subplots()
-    bp1 = ax.boxplot(heights_ones, positions=[1], patch_artist=True)
-    bp2 = ax.boxplot(heights_twos, positions=[2], patch_artist=True)
+    bp1 = ax.boxplot([t[2] for t in final_result if t[1] == 1], positions=[1], patch_artist=True)
+    bp2 = ax.boxplot([t[2] for t in final_result if t[1] == 2], positions=[2], patch_artist=True)
 
     bp1['boxes'][0].set_facecolor("lightblue")
     bp2['boxes'][0].set_facecolor("lightgreen")
@@ -51,14 +48,6 @@ def draw_plot(result):
 
     fig.tight_layout()
     plt.savefig('heights.png')
-
-    final_result = []
-    for index, row in result.iterrows():
-        if row['class'] == 1:
-            value = heights_ones.pop(0)
-        if row['class'] == 2:
-            value = heights_twos.pop(0)
-        final_result.append((row['filename'], row['class'], value))
 
     df = pd.DataFrame(final_result, columns=['filename', 'class', 'height'])
     df.to_csv("result.csv", index=False)

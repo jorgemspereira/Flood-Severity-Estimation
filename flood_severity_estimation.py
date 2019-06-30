@@ -27,6 +27,11 @@ def get_48_neighbors_position(current_position):
     return [(row - x, col - y) for x in range(-3, 4) for y in range(-3, 4) if x != 0 or y != 0]
 
 
+def get_80_neighbors_position(current_position):
+    row, col = current_position[0], current_position[1]
+    return [(row - x, col - y) for x in range(-4, 5) for y in range(-4, 5) if x != 0 or y != 0]
+
+
 def get_differences(current_pos, positions, dsm_info):
     return [abs(dsm_info[-1][pos[0]][pos[1]] - dsm_info[-1][current_pos[0]][current_pos[1]]) for pos in positions]
 
@@ -64,6 +69,12 @@ def flood_severity_estimation(row):
     result["forty_eight_neighbors_min"] = min(forty_eight_differences)
     result["forty_eight_neighbors_max"] = max(forty_eight_differences)
 
+    eighty_neighbors = get_80_neighbors_position(init_position)
+    eighty_neighbors_differences = get_differences(init_position, eighty_neighbors, dsm_info)
+    result["eighty_neighbors_avg"] = np.mean(eighty_neighbors_differences)
+    result["eighty_neighbors_min"] = min(eighty_neighbors_differences)
+    result["eighty_neighbors_max"] = max(eighty_neighbors_differences)
+
     gdal.Unlink("/vsimem/dsm_high_res")
     return result
 
@@ -71,7 +82,8 @@ def flood_severity_estimation(row):
 def get_values(data_frame, output_name):
     columns_names = ['filename', 'class', 'eight_neighbors_avg', 'eight_neighbors_min', 'eight_neighbors_max',
                      'twenty_four_neighbors_avg', 'twenty_four_neighbors_min', 'twenty_four_neighbors_max',
-                     'forty_eight_neighbors_avg', 'forty_eight_neighbors_min', 'forty_eight_neighbors_max']
+                     'forty_eight_neighbors_avg', 'forty_eight_neighbors_min', 'forty_eight_neighbors_max',
+                     'eighty_neighbors_avg', 'eighty_neighbors_min', 'eighty_neighbors_max']
 
     if Path(output_name).is_file():
         result_df = pd.read_csv(output_name)
@@ -100,14 +112,14 @@ def get_values(data_frame, output_name):
 def main():
     mediaeval_test_df = get_flooded_mediaeval_info("./datasets/mediaeval2017_testset_gt.csv",
                                                    "./datasets/mediaeval2017_testset_metadata.json")
-    result_mediaeval_test = get_values(mediaeval_test_df, "./values_plots_dem_v3/values_mediaeval_test.csv")
+    result_mediaeval_test = get_values(mediaeval_test_df, "./values_plots_dem_v4/values_mediaeval_test.csv")
 
     mediaeval_train_df = get_flooded_mediaeval_info("./datasets/mediaeval2017_devset_gt.csv",
                                                     "./datasets/mediaeval2017_devset_metadata.json")
-    result_mediaeval_train = get_values(mediaeval_train_df, "./values_plots_dem_v3/values_mediaeval_train.csv")
+    result_mediaeval_train = get_values(mediaeval_train_df, "./values_plots_dem_v4/values_mediaeval_train.csv")
 
     european_df = get_flooded_europeanfloods_info()
-    result_european_floods = get_values(european_df, "./values_plots_dem_v3/values_european_floods.csv")
+    result_european_floods = get_values(european_df, "./values_plots_dem_v4/values_european_floods.csv")
 
     result = result_mediaeval_test.append(result_mediaeval_train, ignore_index=True)
     result = result.append(result_european_floods, ignore_index=True)
