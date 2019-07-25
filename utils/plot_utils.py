@@ -16,13 +16,15 @@ def draw_plot(result):
             height = row['twenty_four_neighbors_max'] - row['twenty_four_neighbors_avg']
             height = height if height > 1 else row['forty_eight_neighbors_max'] - row['forty_eight_neighbors_avg']
             height = height if height > 1 else row['eighty_neighbors_max'] - row['eighty_neighbors_avg']
+            height = height if height > 1 else row['one_hundred_twenty_neighbors_max'] - row['one_hundred_twenty_neighbors_avg']
+            height = height if height > 1 else row['one_hundred_sixty_eight_neighbors_max'] - row['one_hundred_sixty_eight_neighbors_avg']
             second.append(height)
             height = max(1.0, height)
 
         else:
             raise ValueError("Class should be equal to 1 or 2.")
 
-        final_result.append((row['filename'], row['class'], height))
+        final_result.append((row['filename'], row['font'], row['class'], height))
 
     print("Class LESS than 1 meter.")
     print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in first) / len(first)))
@@ -35,8 +37,8 @@ def draw_plot(result):
     print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in second) / len(second)))
 
     fig, ax = plt.subplots()
-    bp1 = ax.boxplot([t[2] for t in final_result if t[1] == 1], positions=[1], patch_artist=True)
-    bp2 = ax.boxplot([t[2] for t in final_result if t[1] == 2], positions=[2], patch_artist=True)
+    bp1 = ax.boxplot([t[3] for t in final_result if t[2] == 1], positions=[1], patch_artist=True)
+    bp2 = ax.boxplot([t[3] for t in final_result if t[2] == 2], positions=[2], patch_artist=True)
 
     bp1['boxes'][0].set_facecolor("lightblue")
     bp2['boxes'][0].set_facecolor("lightgreen")
@@ -49,5 +51,5 @@ def draw_plot(result):
     fig.tight_layout()
     plt.savefig('heights.png')
 
-    df = pd.DataFrame(final_result, columns=['filename', 'class', 'height'])
+    df = pd.DataFrame(final_result, columns=['filename', 'font', 'class', 'height'])
     df.to_csv("result.csv", index=False)
