@@ -9,7 +9,7 @@ and the EU-DEM are used. The file for the SRTM DEM can be obtained
 [here](https://drive.google.com/open?id=1pHF-fClkc27zk0lNJX4i1LOyywkQM07a) and the files 
 for the EU-DEM [here](https://land.copernicus.eu/imagery-in-situ/eu-dem/eu-dem-v1.1?tab=download). 
 
-These files needed to be placed ain the folder as described below.
+These files needed to be placed in the folder as described below.
 
 ```
 project
