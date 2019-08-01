@@ -1,24 +1,23 @@
 # Flood Severity Estimation Algorithm
 
-This repository contains the implementation for a "Flood Severity Estimation Algorithm", that tries to estimate the height of the water in geo-referenced photos that depict floods. This algorithm uses the satellite images described by Groeve (2010) and the Digital Elevation Model (DEM) from the Japan Aerospace eXploration Agency (JAXA).
+This repository contains the implementation for a "Flood Severity Estimation Algorithm", that tries to estimate the 
+height of the water in geo-referenced photos that depict floods. This algorithm uses the Digital Elevation 
+Model (DEM) from the Japan Aerospace eXploration Agency (JAXA). 
 
-    @article{groeve2010floods,
-        author  = {Tom De Groeve},
-        title   = {Flood monitoring and mapping using passive microwave remote sensing in Namibia},
-        journal = {Geomatics, Natural Hazards and Risk},
-        volume  = {1},
-        number  = {1},
-        year    = {2010}
-    }
+To fill the "NO DATA VALUES" from the JAXA's DEM, the DEMs from the Shuttle Radar Topography Mission (SRTM)
+and the EU-DEM are used. The file for the SRTM DEM can be obtained 
+[here](https://drive.google.com/open?id=1pHF-fClkc27zk0lNJX4i1LOyywkQM07a) and the files 
+for the EU-DEM [here](https://land.copernicus.eu/imagery-in-situ/eu-dem/eu-dem-v1.1?tab=download). 
 
-To fill the "NO DATA VALUES" from the JAXA's DEM, the DEM from the Shuttle Radar Topography Mission (SRTM) is used (after interpolated to the same resolution of JAXA). The file can be obtained [here](https://drive.google.com/open?id=1pHF-fClkc27zk0lNJX4i1LOyywkQM07a) and needs to be placed in the folder as described below.
+These files needed to be placed ain the folder as described below.
 
 ```
 project
 │   datasets
 │   results
-└─── srtm30_merged
+└─── dems
 │   │   srtm30_merged.tif
+│   │   eu_dem.tif
 │   flood_severity_estimation.py
 │   README.md
 ```
