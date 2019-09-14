@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import pandas as pd
 
 
@@ -37,16 +38,23 @@ def draw_plot(result):
     print("Number of zeros   : {:05.2f} %".format(100 * sum(x == 0 for x in second) / len(second)))
 
     fig, ax = plt.subplots()
-    bp1 = ax.boxplot([t[3] for t in final_result if t[2] == 1], positions=[1], patch_artist=True)
-    bp2 = ax.boxplot([t[3] for t in final_result if t[2] == 2], positions=[2], patch_artist=True)
+    bp1 = ax.boxplot([t[3] for t in final_result if t[2] == 1], positions=[1], patch_artist=True, widths=[0.8])
+    bp2 = ax.boxplot([t[3] for t in final_result if t[2] == 2], positions=[2], patch_artist=True, widths=[0.8])
+    bp3 = ax.boxplot([t[3] for t in final_result if t[2] == 1 or t[2] == 2], positions=[3], patch_artist=True, widths=[0.8])
 
     bp1['boxes'][0].set_facecolor("lightblue")
     bp2['boxes'][0].set_facecolor("lightgreen")
+    bp3['boxes'][0].set_facecolor("lightpink")
 
-    ax.set_xlim(0, 3)
-    ax.set_ylim(-0.1, 7.5)
-    plt.xticks([1, 2], ["Less 1M\n", "More 1M\n"], rotation=45)
-    plt.title('Heights')
+    ax.set_yscale("symlog", basey=2)
+    ax.yaxis.set_major_formatter(mticker.StrMethodFormatter('{x:.0f}'))
+    ax.yaxis.set_minor_formatter(mticker.NullFormatter())
+    ax.set_ylim(-0.1, 10)
+    ax.set_xlim(0, 4)
+    plt.yticks([0, 1, 2, 4, 8], [0, 1, 2, 4, 8])
+    plt.xticks([1, 2, 3], ["Less 1 Meter\n", "More 1 Meter\n", "Overall\n"])
+    plt.hlines([1, 2, 4, 8], xmin=0, xmax=10, linestyles="dotted", linewidth=0.5)
+    plt.title('Estimated Water Depth')
 
     fig.tight_layout()
     plt.savefig('heights.png')
